@@ -114,4 +114,4 @@ run:
 ```sh
 docker run -p 5000:5000 image-processor:latest
 ```
-this command will run the docker imae on your machine
+this command will run the docker image on your machine
