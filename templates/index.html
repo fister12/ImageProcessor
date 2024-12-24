@@ -10,12 +10,11 @@
   <div class="container mx-auto p-6 space-y-6">
     <h1 class="text-4xl font-bold text-center text-primary">Image Processing Tool</h1>
 
-    <form method="POST" enctype="multipart/form-data" class="space-y-6">
+    <form method="POST" onsubmit="modifyImage(event)" enctype="multipart/form-data" class="space-y-6">
       <!-- File Upload Section -->
       <div class="card bg-base-200 shadow-md w-full sm:w-3/4 mx-auto">
-        <div 
-          class="file-drop-area h-64 border-2 border-dashed border-primary flex items-center justify-center rounded-lg cursor-pointer relative">
-          <input 
+        <div class="file-drop-area flex-col gap-4 h-64 border-2 border-dashed border-primary flex items-center justify-center rounded-lg cursor-pointer relative">
+            <input 
             type="file" 
             id="file" 
             name="file" 
@@ -24,15 +23,23 @@
             class="file-input absolute inset-0 opacity-0 w-full h-full cursor-pointer" 
             aria-label="Upload your image by dragging and dropping or clicking" 
             onchange="handleFileInput(event)" />
-          <p class="text-center text-primary">Drag & Drop your image here or click to upload</p>
+            <div class="mt-4 hidden z-10" id="image-preview-container">
+              <div class="flex justify-center">
+                <button type="button" class="btn btn-primary" onclick="imagePreviewModal.showModal()">View Image</button>
+              </div>
+            </div>
+            <p class="text-center text-primary">Drag & Drop your image here or click to upload</p>
         </div>
 
         <!-- Image Preview Section -->
-        <div class="mt-4" id="image-preview-container" style="display:none;">
-          <h3 class="text-xl font-semibold text-primary text-center">Image Preview</h3>
+      </div>
+      <div id="result" class="hidden">
+        <div class="card bg-base-200 shadow-md p-6">
+          <h2 class="text-2xl font-semibold text-primary text-center mb-2">Modified Image</h2>
           <div class="flex justify-center">
-            <img id="image-preview" class="rounded-lg max-w-full h-auto" alt="Image Preview">
+            <img id="result-image" class="w-auto max-w-full h-auto" alt="Result Image" />
           </div>
+          <button type="button" class="btn btn-primary btn-wide m-auto mt-3" onclick="downloadImage()">Download Image</button>
         </div>
       </div>
 
@@ -130,68 +137,23 @@
       </div>
     </form>
   </div>
-
-  <script>
-    const fileDropArea = document.querySelector('.file-drop-area');
-    const fileInput = document.getElementById('file');
-    const imagePreviewContainer = document.getElementById('image-preview-container');
-    const imagePreview = document.getElementById('image-preview');
-
-    fileDropArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      fileDropArea.classList.add('border-secondary'); // Highlight on drag over
-    });
-
-    fileDropArea.addEventListener('dragleave', () => {
-      fileDropArea.classList.remove('border-secondary'); // Remove highlight on drag leave
-    });
-
-    fileDropArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      fileDropArea.classList.remove('border-secondary'); // Remove highlight on drop
-      const files = e.dataTransfer.files;
-      handleFilePreview(files[0]);
-    });
-
-    function handleFileInput(event) {
-      const files = event.target.files;
-      handleFilePreview(files[0]);
-    }
-
-    function handleFilePreview(file) {
-        if(file==null){
-            console.log("No file selected");
-            imagePreview.src = '';
-            imagePreviewContainer.style.display = 'none';
-            return;
-        }
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        imagePreview.src = e.target.result;
-        imagePreviewContainer.style.display = 'block'; // Show image preview
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function toggleInputGroup(group) {
-      const elements = {
-        resize: ['resize-width', 'resize-height'],
-        compress: ['compress-quality'],
-        change_format: ['change-format'],
-        crop: ['crop-top', 'crop-bottom', 'crop-left', 'crop-right'],
-        rotate: ['rotate-angle'],
-        filter: ['add-filter']
-      };
-      
-      elements[group].forEach(id => {
-        const element = document.getElementById(id);
-        if (document.getElementById(`action-${group}`).checked) {
-          element.removeAttribute('readonly');
-        } else {
-          element.setAttribute('readonly', true);
-        }
-      });
-    }
-  </script>
+  <dialog id="imagePreviewModal" class="modal">
+    <div class="modal-box w-11/12 max-w-5xl">
+      <h3 class="text-lg font-bold text-center">Image Preview</h3>
+      <div class="flex justify-center overflow-hidden">
+        <!-- Image Preview -->
+        <div class="max-w-full max-h-96 overflow-auto">
+          <img id="image-preview" class="w-auto max-w-none h-auto" alt="Image Preview" />
+        </div>
+      </div>
+      <div class="modal-action">
+        <form method="dialog">
+          <button class="btn">Close</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
+  
+  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>
