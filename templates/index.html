@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processing Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: #fff;
+        }
+        input, button, select, label {
+            display: block;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Processing Tool</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <label for="file">Upload Image:</label>
+        <input type="file" id="file" name="file" accept="image/*" required>
+
+        <h2>Choose an Action</h2>
+
+        <!-- Remove Background -->
+        <div>
+            <label for="action-remove">Remove Background</label>
+            <input type="radio" id="action-remove" name="action" value="remove_bg">
+        </div>
+
+        <!-- Resize -->
+        <div>
+            <label for="action-resize">Resize</label>
+            <input type="radio" id="action-resize" name="action" value="resize">
+            <input type="number" name="width" placeholder="Width (px)">
+            <input type="number" name="height" placeholder="Height (px)">
+        </div>
+
+        <!-- Compress -->
+        <div>
+            <label for="action-compress">Compress</label>
+            <input type="radio" id="action-compress" name="action" value="compress">
+            <input type="number" name="quality" placeholder="Quality (1-100)" min="1" max="100">
+        </div>
+
+        <!-- Change Format -->
+        <div>
+            <label for="action-format">Change Format</label>
+            <input type="radio" id="action-format" name="action" value="change_format">
+            <select name="format">
+                <option value="JPEG">JPEG</option>
+                <option value="PNG">PNG</option>
+                <option value="BMP">BMP</option>
+            </select>
+        </div>
+
+        <!-- Crop -->
+        <div>
+            <label for="action-crop">Crop</label>
+            <input type="radio" id="action-crop" name="action" value="crop">
+            <input type="number" name="top" placeholder="Top (px)">
+            <input type="number" name="bottom" placeholder="Bottom (px)">
+            <input type="number" name="left" placeholder="Left (px)">
+            <input type="number" name="right" placeholder="Right (px)">
+        </div>
+
+        <!-- Rotate -->
+        <div>
+            <label for="action-rotate">Rotate</label>
+            <input type="radio" id="action-rotate" name="action" value="rotate_Image">
+            <input type="number" name="angle" placeholder="Angle (degrees)">
+        </div>
+
+        <!-- Add Filter -->
+        <div>
+            <label for="action-filter">Add Filter</label>
+            <input type="radio" id="action-filter" name="action" value="add_filter">
+            <select name="filter">
+                <option value="BLUR">Blur</option>
+                <option value="CONTOUR">Contour</option>
+                <option value="DETAIL">Detail</option>
+                <option value="EDGE_ENHANCE">Edge Enhance</option>
+                <option value="EMBOSS">Emboss</option>
+                <option value="FIND_EDGES">Find Edges</option>
+                <option value="SHARPEN">Sharpen</option>
+            </select>
+        </div>
+
+        <!-- Add Watermark -->
+        <div>
+            <label for="action-watermark">Add Watermark</label>
+            <input type="radio" id="action-watermark" name="action" value="add_watermark">
+            <label for="watermark">Upload Watermark Image:</label>
+            <input type="file" id="watermark" name="watermark" accept="image/*">
+        </div>
+
+        <!-- Adjust Brightness/Contrast/Saturation -->
+        <div>
+            <label for="action-adjust">Adjust Brightness/Contrast/Saturation</label>
+            <input type="radio" id="action-adjust" name="action" value="adjust_properties">
+            <input type="number" step="0.1" name="brightness" placeholder="Brightness (1.0)">
+            <input type="number" step="0.1" name="contrast" placeholder="Contrast (1.0)">
+            <input type="number" step="0.1" name="saturation" placeholder="Saturation (1.0)">
+            <select name="what">
+                <option value="brightness">Brightness</option>
+                <option value="contrast">Contrast</option>
+                <option value="saturation">Saturation</option>
+            </select>
+        </div>
+
+        <button type="submit">Apply</button>
+    </form>
+</body>
+</html>
