@@ -4,3 +4,4 @@ flask
 onnxruntime
 opencv-python
 numpy
+aiohttp
