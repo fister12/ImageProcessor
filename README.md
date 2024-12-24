@@ -101,3 +101,17 @@ This command processes `input.css` and generates the compiled `output.css`, watc
 - Ensure the virtual environment is activated and dependencies are installed.
 - Run `npx tailwindcss` to start the Tailwind watch process.
 - Develop with the assurance that your Python environment and Tailwind CSS setup are correctly configured.
+
+### Docker setup
+setup the  docker environment on your machine by installing docker desktop and docker CLI then
+Run the command:
+```sh
+docker build -t image-processor:latest .
+```
+this command will build the docker image
+
+run:
+```sh
+docker run -p 5000:5000 image-processor:latest
+```
+this command will run the docker imae on your machine

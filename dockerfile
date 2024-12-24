@@ -1,5 +1,7 @@
-FROM python:3.9
+FROM python:3.9-slim
 
+
+WORKDIR /app
 #copy model to avoid unnecessary download
 
 COPY u2net.onnx /home/.u2net/u2net.onnx

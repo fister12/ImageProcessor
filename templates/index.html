@@ -215,24 +215,12 @@
         filter: ['add-filter']
       };
       
-<<<<<<< HEAD
       elements[group].forEach(id => {
         const element = document.getElementById(id);
         if (document.getElementById(`action-${group}`).checked) {
           element.removeAttribute('readonly');
         } else {
           element.setAttribute('readonly', true);
-=======
-      Object.keys(elements).forEach(key => {
-        if (key !== group) {
-          elements[key].forEach(id => {
-            document.getElementById(id).readOnly = true;
-          });
-        } else {
-          elements[group].forEach(id => {
-            document.getElementById(id).readOnly = false;
-          });
->>>>>>> 1b6f98354270ed0da2e491ed3240f7567e8468e3
         }
       });
     }
