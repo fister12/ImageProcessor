@@ -1,138 +1,200 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Processing Tool</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-            background-color: #f4f4f9;
-        }
-        h1 {
-            color: #333;
-        }
-        form {
-            margin-bottom: 20px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            background: #fff;
-        }
-        input, button, select, label {
-            display: block;
-            margin: 10px 0;
-        }
-        button {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007BFF;
-            color: #fff;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+  <title>Image Processing Tool</title>
 </head>
-<body>
-    <h1>Image Processing Tool</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <label for="file">Upload Image:</label>
-        <input type="file" id="file" name="file" accept="image/*" required>
+<body class="bg-base-100 text-base-content">
+  <div class="container mx-auto p-6 space-y-6">
+    <h1 class="text-4xl font-bold text-center text-primary">Image Processing Tool</h1>
 
-        <h2>Choose an Action</h2>
-
-        <!-- Remove Background -->
-        <div>
-            <label for="action-remove">Remove Background</label>
-            <input type="radio" id="action-remove" name="action" value="remove_bg">
+    <form method="POST" enctype="multipart/form-data" class="space-y-6">
+      <!-- File Upload Section -->
+      <div class="card bg-base-200 shadow-md w-full sm:w-3/4 mx-auto">
+        <div 
+          class="file-drop-area h-64 border-2 border-dashed border-primary flex items-center justify-center rounded-lg cursor-pointer relative">
+          <input 
+            type="file" 
+            id="file" 
+            name="file" 
+            accept="image/*" 
+            required 
+            class="file-input absolute inset-0 opacity-0 w-full h-full cursor-pointer" 
+            aria-label="Upload your image by dragging and dropping or clicking" 
+            onchange="handleFileInput(event)" />
+          <p class="text-center text-primary">Drag & Drop your image here or click to upload</p>
         </div>
 
-        <!-- Resize -->
-        <div>
-            <label for="action-resize">Resize</label>
-            <input type="radio" id="action-resize" name="action" value="resize">
-            <input type="number" name="width" placeholder="Width (px)">
-            <input type="number" name="height" placeholder="Height (px)">
+        <!-- Image Preview Section -->
+        <div class="mt-4" id="image-preview-container" style="display:none;">
+          <h3 class="text-xl font-semibold text-primary text-center">Image Preview</h3>
+          <div class="flex justify-center">
+            <img id="image-preview" class="rounded-lg max-w-full h-auto" alt="Image Preview">
+          </div>
         </div>
+      </div>
 
-        <!-- Compress -->
-        <div>
-            <label for="action-compress">Compress</label>
-            <input type="radio" id="action-compress" name="action" value="compress">
-            <input type="number" name="quality" placeholder="Quality (1-100)" min="1" max="100">
-        </div>
+      <!-- Actions Section -->
+      <div class="card bg-base-200 shadow-md p-6">
+        <h2 class="text-2xl font-semibold text-primary">Choose an Action</h2>
+        <div class="form-control space-y-4 mt-4">
+          <!-- Remove Background -->
+          <div class="input-group">
+            <label class="label cursor-pointer flex items-center">
+              <input type="radio" name="action" value="remove_bg" class="radio radio-primary" onchange="toggleInputGroup('remove_bg')" />
+              <span class="label-text ml-2">Remove Background</span>
+            </label>
+          </div>
 
-        <!-- Change Format -->
-        <div>
-            <label for="action-format">Change Format</label>
-            <input type="radio" id="action-format" name="action" value="change_format">
-            <select name="format">
-                <option value="JPEG">JPEG</option>
-                <option value="PNG">PNG</option>
-                <option value="BMP">BMP</option>
+          <!-- Resize -->
+          <div class="input-group">
+            <label class="label cursor-pointer flex items-center">
+              <input type="radio" name="action" value="resize" class="radio radio-primary" onchange="toggleInputGroup('resize')" />
+              <span class="label-text ml-2">Resize</span>
+            </label>
+            <div class="grid grid-cols-2 gap-4">
+              <input type="number" name="width" placeholder="Width (px)" class="input input-bordered w-full" id="resize-width" readonly />
+              <input type="number" name="height" placeholder="Height (px)" class="input input-bordered w-full" id="resize-height" readonly />
+            </div>
+          </div>
+
+          <!-- Compress -->
+          <div class="input-group">
+            <label class="label cursor-pointer flex items-center">
+              <input type="radio" name="action" value="compress" class="radio radio-primary" onchange="toggleInputGroup('compress')" />
+              <span class="label-text ml-2">Compress</span>
+            </label>
+            <input type="number" name="quality" placeholder="Quality (1-100)" min="1" max="100" class="input input-bordered w-full" id="compress-quality" readonly />
+          </div>
+
+          <!-- Change Format -->
+          <div class="input-group">
+            <label class="label cursor-pointer flex items-center">
+              <input type="radio" name="action" value="change_format" class="radio radio-primary" onchange="toggleInputGroup('change_format')" />
+              <span class="label-text ml-2">Change Format</span>
+            </label>
+            <select name="format" class="select select-bordered w-full" id="change-format" readonly>
+              <option value="JPEG">JPEG</option>
+              <option value="PNG">PNG</option>
+              <option value="BMP">BMP</option>
             </select>
-        </div>
+          </div>
 
-        <!-- Crop -->
-        <div>
-            <label for="action-crop">Crop</label>
-            <input type="radio" id="action-crop" name="action" value="crop">
-            <input type="number" name="top" placeholder="Top (px)">
-            <input type="number" name="bottom" placeholder="Bottom (px)">
-            <input type="number" name="left" placeholder="Left (px)">
-            <input type="number" name="right" placeholder="Right (px)">
-        </div>
+          <!-- Crop -->
+          <div class="input-group">
+            <label class="label cursor-pointer flex items-center">
+              <input type="radio" name="action" value="crop" class="radio radio-primary" onchange="toggleInputGroup('crop')" />
+              <span class="label-text ml-2">Crop</span>
+            </label>
+            <div class="grid grid-cols-2 gap-4">
+              <input type="number" name="top" placeholder="Top (px)" class="input input-bordered" id="crop-top" readonly />
+              <input type="number" name="bottom" placeholder="Bottom (px)" class="input input-bordered" id="crop-bottom" readonly />
+              <input type="number" name="left" placeholder="Left (px)" class="input input-bordered" id="crop-left" readonly />
+              <input type="number" name="right" placeholder="Right (px)" class="input input-bordered" id="crop-right" readonly />
+            </div>
+          </div>
 
-        <!-- Rotate -->
-        <div>
-            <label for="action-rotate">Rotate</label>
-            <input type="radio" id="action-rotate" name="action" value="rotate_Image">
-            <input type="number" name="angle" placeholder="Angle (degrees)">
-        </div>
+          <!-- Rotate -->
+          <div class="input-group">
+            <label class="label cursor-pointer flex items-center">
+              <input type="radio" name="action" value="rotate_Image" class="radio radio-primary" onchange="toggleInputGroup('rotate')" />
+              <span class="label-text ml-2">Rotate</span>
+            </label>
+            <input type="number" name="angle" placeholder="Angle (degrees)" class="input input-bordered w-full" id="rotate-angle" readonly />
+          </div>
 
-        <!-- Add Filter -->
-        <div>
-            <label for="action-filter">Add Filter</label>
-            <input type="radio" id="action-filter" name="action" value="add_filter">
-            <select name="filter">
-                <option value="BLUR">Blur</option>
-                <option value="CONTOUR">Contour</option>
-                <option value="DETAIL">Detail</option>
-                <option value="EDGE_ENHANCE">Edge Enhance</option>
-                <option value="EMBOSS">Emboss</option>
-                <option value="FIND_EDGES">Find Edges</option>
-                <option value="SHARPEN">Sharpen</option>
+          <!-- Add Filter -->
+          <div class="input-group">
+            <label class="label cursor-pointer flex items-center">
+              <input type="radio" name="action" value="add_filter" class="radio radio-primary" onchange="toggleInputGroup('filter')" />
+              <span class="label-text ml-2">Add Filter</span>
+            </label>
+            <select name="filter" class="select select-bordered w-full" id="add-filter" readonly>
+              <option value="BLUR">Blur</option>
+              <option value="CONTOUR">Contour</option>
+              <option value="DETAIL">Detail</option>
+              <option value="EDGE_ENHANCE">Edge Enhance</option>
+              <option value="EMBOSS">Emboss</option>
+              <option value="FIND_EDGES">Find Edges</option>
+              <option value="SHARPEN">Sharpen</option>
             </select>
+          </div>
         </div>
+      </div>
 
-        <!-- Add Watermark -->
-        <div>
-            <label for="action-watermark">Add Watermark</label>
-            <input type="radio" id="action-watermark" name="action" value="add_watermark">
-            <label for="watermark">Upload Watermark Image:</label>
-            <input type="file" id="watermark" name="watermark" accept="image/*">
-        </div>
-
-        <!-- Adjust Brightness/Contrast/Saturation -->
-        <div>
-            <label for="action-adjust">Adjust Brightness/Contrast/Saturation</label>
-            <input type="radio" id="action-adjust" name="action" value="adjust_properties">
-            <input type="number" step="0.1" name="brightness" placeholder="Brightness (1.0)">
-            <input type="number" step="0.1" name="contrast" placeholder="Contrast (1.0)">
-            <input type="number" step="0.1" name="saturation" placeholder="Saturation (1.0)">
-            <select name="what">
-                <option value="brightness">Brightness</option>
-                <option value="contrast">Contrast</option>
-                <option value="saturation">Saturation</option>
-            </select>
-        </div>
-
-        <button type="submit">Apply</button>
+      <!-- Submit Button -->
+      <div class="flex justify-center">
+        <button type="submit" class="btn btn-primary btn-wide">Apply Changes</button>
+      </div>
     </form>
+  </div>
+
+  <script>
+    const fileDropArea = document.querySelector('.file-drop-area');
+    const fileInput = document.getElementById('file');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const imagePreview = document.getElementById('image-preview');
+
+    fileDropArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileDropArea.classList.add('border-secondary'); // Highlight on drag over
+    });
+
+    fileDropArea.addEventListener('dragleave', () => {
+      fileDropArea.classList.remove('border-secondary'); // Remove highlight on drag leave
+    });
+
+    fileDropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileDropArea.classList.remove('border-secondary'); // Remove highlight on drop
+      const files = e.dataTransfer.files;
+      handleFilePreview(files[0]);
+    });
+
+    function handleFileInput(event) {
+      const files = event.target.files;
+      handleFilePreview(files[0]);
+    }
+
+    function handleFilePreview(file) {
+        if(file==null){
+            console.log("No file selected");
+            imagePreview.src = '';
+            imagePreviewContainer.style.display = 'none';
+            return;
+        }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        imagePreview.src = e.target.result;
+        imagePreviewContainer.style.display = 'block'; // Show image preview
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function toggleInputGroup(group) {
+      const elements = {
+        resize: ['resize-width', 'resize-height'],
+        compress: ['compress-quality'],
+        change_format: ['change-format'],
+        crop: ['crop-top', 'crop-bottom', 'crop-left', 'crop-right'],
+        rotate: ['rotate-angle'],
+        filter: ['add-filter']
+      };
+      
+      Object.keys(elements).forEach(key => {
+        if (key !== group) {
+          elements[key].forEach(id => {
+            document.getElementById(id).readOnly = true;
+          });
+        } else {
+          elements[group].forEach(id => {
+            document.getElementById(id).readOnly = false;
+          });
+        }
+      });
+    }
+  </script>
 </body>
 </html>
