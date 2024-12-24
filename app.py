@@ -22,6 +22,8 @@ async def resize_image(input_image, width, height):
 
 async def compress_image(input_image, quality):
     """Compress the input image to the specified quality."""
+    if input_image.mode == 'RGBA':
+        input_image = input_image.convert('RGB')
     img_io = BytesIO()
     input_image.save(img_io, format="JPEG", quality=quality)
     img_io.seek(0)
