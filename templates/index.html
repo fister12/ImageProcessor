@@ -7,59 +7,92 @@
   <title>Image Processing Tool</title>
 </head>
 <body class="bg-base-100 text-base-content">
-  <div class="container mx-auto p-6 space-y-6">
-    <h1 class="text-4xl font-bold text-center text-primary">Image Processing Tool</h1>
+  <form method="POST" onsubmit="modifyImage(event)" enctype="multipart/form-data" class="space-y-6">
+  <div class="drawer lg:drawer-open">
+    <input id="main-drawer" type="checkbox" class="drawer-toggle" />
+    
+    <!-- Drawer Content -->
+    <div class="drawer-content flex flex-col">
+      <!-- Navbar for mobile -->
+      <div class="w-full navbar bg-base-200 lg:hidden">
+        <div class="flex-none">
+          <label for="main-drawer" class="btn btn-square btn-ghost drawer-button">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </label>
+        </div>
+        <div class="flex-1 px-2 mx-2 text-primary font-bold">Image Processing Tool</div>
+      </div>
 
-    <form method="POST" onsubmit="modifyImage(event)" enctype="multipart/form-data" class="space-y-6">
-      <!-- File Upload Section -->
-      <div class="card bg-base-200 shadow-md w-full sm:w-3/4 mx-auto">
-        <div class="file-drop-area flex-col gap-4 h-64 border-2 border-dashed border-primary flex items-center justify-center rounded-lg cursor-pointer relative">
-            <input 
-            type="file" 
-            id="file" 
-            name="file" 
-            accept="image/*" 
-            required 
-            class="file-input absolute inset-0 opacity-0 w-full h-full cursor-pointer" 
-            aria-label="Upload your image by dragging and dropping or clicking" 
-            onchange="handleFileInput(event)" />
-            <div class="mt-4 hidden z-10" id="image-preview-container">
-              <div class="flex justify-center">
-                <button type="button" class="btn btn-primary" onclick="imagePreviewModal.showModal()">View Image</button>
-              </div>
+      <!-- Main Content -->
+      <div class="lg:container p-6 space-y-6">
+        <h1 class="text-4xl font-bold text-center text-primary lg:hidden">Image Processing Tool</h1>
+
+          <!-- File Upload Section -->
+          <div class="card bg-base-200 shadow-md w-full sm:w-3/4 mx-auto">
+            <div class="file-drop-area flex-col gap-4 h-64 border-2 border-dashed border-primary flex items-center justify-center rounded-lg cursor-pointer relative">
+                <input 
+                type="file" 
+                id="file" 
+                name="file" 
+                accept="image/*" 
+                required 
+                class="file-input absolute inset-0 opacity-0 w-full h-full cursor-pointer" 
+                aria-label="Upload your image by dragging and dropping or clicking" 
+                onchange="handleFileInput(event)" />
+                <div class="mt-4 hidden z-10" id="image-preview-container">
+                  <div class="flex justify-center">
+                    <button type="button" class="btn btn-primary" onclick="imagePreviewModal.showModal()">View Image</button>
+                  </div>
+                </div>
+                <p class="text-center text-primary">Drag & Drop your image here or click to upload</p>
             </div>
-            <p class="text-center text-primary">Drag & Drop your image here or click to upload</p>
-        </div>
-
-        <!-- Image Preview Section -->
-      </div>
-      <div id="result" class="hidden">
-        <div class="card bg-base-200 shadow-md p-6">
-          <h2 class="text-2xl font-semibold text-primary text-center mb-2">Modified Image</h2>
-          <div class="flex justify-center">
-            <img id="result-image" class="w-auto max-w-full h-auto" alt="Result Image" />
           </div>
-          <button type="button" class="btn btn-primary btn-wide m-auto mt-3" onclick="downloadImage()">Download Image</button>
+          
+          <div id="result" class="hidden">
+            <div class="card bg-base-200 shadow-md p-6">
+              <h2 class="text-2xl font-semibold text-primary text-center mb-2">Modified Image</h2>
+              <div class="flex justify-center">
+                <img id="result-image" class="w-auto max-w-full h-auto" alt="Result Image" />
+              </div>
+              <button type="button" class="btn btn-primary btn-wide m-auto mt-3" onclick="downloadImage()">Download Image</button>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex justify-center">
+            <button type="submit" class="btn btn-primary btn-wide">Apply Changes</button>
+          </div>
         </div>
       </div>
+      
+      <!-- Sidebar Content -->
+      <div class="drawer-side">
+        <label for="main-drawer" class="drawer-overlay"></label>
+      <aside class="bg-base-200 w-80 min-h-full">
+        <!-- Sidebar Header -->
+        <div class="p-4 border-b border-base-300">
+          <h1 class="text-2xl font-bold text-primary">Image Processing Tool</h1>
+        </div>
 
-      <!-- Actions Section -->
-      <div class="card bg-base-200 shadow-md p-6">
-        <h2 class="text-2xl font-semibold text-primary">Choose Actions</h2>
-        <div class="form-control space-y-4 mt-4">
+        <!-- Actions Menu -->
+        <div class="p-4 space-y-4">
+          <h2 class="text-xl font-semibold text-primary mb-4">Actions</h2>
+          
           <!-- Remove Background -->
-          <div class="input-group">
-            <label class="label cursor-pointer flex items-center">
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Remove Background</span>
               <input type="checkbox" id="action-remove_bg" name="remove_bg" class="checkbox checkbox-primary" onchange="toggleInputGroup('remove_bg')" />
-              <span class="label-text ml-2">Remove Background</span>
             </label>
           </div>
 
           <!-- Resize -->
-          <div class="input-group">
-            <label class="label cursor-pointer flex items-center">
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Resize</span>
               <input type="checkbox" id="action-resize" name="resize" class="checkbox checkbox-primary" onchange="toggleInputGroup('resize')" />
-              <span class="label-text ml-2">Resize</span>
             </label>
             <div class="grid grid-cols-2 gap-4">
               <input type="number" name="width" placeholder="Width (px)" class="input input-bordered w-full" id="resize-width" readonly />
@@ -68,19 +101,19 @@
           </div>
 
           <!-- Compress -->
-          <div class="input-group">
-            <label class="label cursor-pointer flex items-center">
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Compress</span>
               <input type="checkbox" id="action-compress" name="compress" class="checkbox checkbox-primary" onchange="toggleInputGroup('compress')" />
-              <span class="label-text ml-2">Compress</span>
             </label>
             <input type="number" name="quality" placeholder="Quality (1-100)" min="1" max="100" class="input input-bordered w-full" id="compress-quality" readonly />
           </div>
 
           <!-- Change Format -->
-          <div class="input-group">
-            <label class="label cursor-pointer flex items-center">
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Change Format</span>
               <input type="checkbox" id="action-change_format" name="change_format" class="checkbox checkbox-primary" onchange="toggleInputGroup('change_format')" />
-              <span class="label-text ml-2">Change Format</span>
             </label>
             <select name="format" class="select select-bordered w-full" id="change-format" readonly>
               <option value="JPEG">JPEG</option>
@@ -90,10 +123,10 @@
           </div>
 
           <!-- Crop -->
-          <div class="input-group">
-            <label class="label cursor-pointer flex items-center">
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Crop</span>
               <input type="checkbox" id="action-crop" name="crop" class="checkbox checkbox-primary" onchange="toggleInputGroup('crop')" />
-              <span class="label-text ml-2">Crop</span>
             </label>
             <div class="grid grid-cols-2 gap-4">
               <input type="number" name="top" placeholder="Top (px)" class="input input-bordered" id="crop-top" readonly />
@@ -104,19 +137,19 @@
           </div>
 
           <!-- Rotate -->
-          <div class="input-group">
-            <label class="label cursor-pointer flex items-center">
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Rotate</span>
               <input type="checkbox" id="action-rotate" name="rotate" class="checkbox checkbox-primary" onchange="toggleInputGroup('rotate')" />
-              <span class="label-text ml-2">Rotate</span>
             </label>
             <input type="number" name="angle" placeholder="Angle (degrees)" class="input input-bordered w-full" id="rotate-angle" readonly />
           </div>
 
           <!-- Add Filter -->
-          <div class="input-group">
-            <label class="label cursor-pointer flex items-center">
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Add Filter</span>
               <input type="checkbox" id="action-filter" name="add_filter" class="checkbox checkbox-primary" onchange="toggleInputGroup('filter')" />
-              <span class="label-text ml-2">Add Filter</span>
             </label>
             <select name="filter" class="select select-bordered w-full" id="add-filter" readonly>
               <option value="BLUR">Blur</option>
@@ -129,19 +162,15 @@
             </select>
           </div>
         </div>
-      </div>
-
-      <!-- Submit Button -->
-      <div class="flex justify-center">
-        <button type="submit" class="btn btn-primary btn-wide">Apply Changes</button>
-      </div>
-    </form>
+      </aside>
+    </div>
   </div>
+</form>
+  <!-- Image Preview Modal -->
   <dialog id="imagePreviewModal" class="modal">
     <div class="modal-box w-11/12 max-w-5xl">
       <h3 class="text-lg font-bold text-center">Image Preview</h3>
       <div class="flex justify-center overflow-hidden">
-        <!-- Image Preview -->
         <div class="max-w-full max-h-96 overflow-auto">
           <img id="image-preview" class="w-auto max-w-none h-auto" alt="Image Preview" />
         </div>
@@ -153,7 +182,6 @@
       </div>
     </div>
   </dialog>
-  
   <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>
