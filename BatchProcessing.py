@@ -58,19 +58,3 @@ def save_images_to_zip(images, output_zip_path):
             z.writestr(filename, img_io.read())
 
 
-def main(input_zip_path, output_zip_path, process_function, *args, **kwargs):
-    # Extract images from zip
-    images = extract_images_from_zip(input_zip_path)
-
-    # Process images
-    processed_images = process_function(images, *args, **kwargs)
-
-    # Save processed images to zip
-    save_images_to_zip(processed_images, output_zip_path)
-
-if __name__ == "__main__":
-    input_zip_path = 'input_images.zip'
-    output_zip_path = 'processed_images.zip'
-
-    # Example usage with remove_background function
-    main(input_zip_path, output_zip_path, remove_background)

@@ -184,6 +184,31 @@ async def upload_file():
 
     return render_template('index.html')
 
+@app.route('/batch', methods=['POST'])
+async def batchProcessing():
+    global image_states
+    if request.method == 'POST':
+        if 'zip_file' not in request.files:
+            return 'No file uploaded', 400
+        zip_file = request.files['zip_file']
+        if zip_file.filename == '':
+            return 'No file selected', 400
+        input_images = BatchProcessing.extract_images_from_zip(zip_file)
+        if request.form.get('remove_bg'):
+            input_images = BatchProcessing.process_images_remove_background(input_images)
+        if request.form.get('resize'):
+            width = int(request.form.get('width', 100))
+            height = int(request.form.get('height', 100))
+            input_images = BatchProcessing.process_images_resize(input_images, width, height)
+        if request.form.get('compress'):
+            quality = int(request.form.get('quality', 75))
+            input_images = BatchProcessing.process_images_compress(input_images, quality)
+        if request.form.get('change_format'):
+            new_format = request.form.get('format', 'JPEG').upper()
+            input_images = BatchProcessing.process_images_change_format(input_images, new_format)
+        output_zip_path = 'output.zip'
+        BatchProcessing.save_images_to_zip(input_images, output_zip_path)
+        return send_file(output_zip_path, as_attachment=True, download_name='output.zip')
 @app.route('/undo', methods=['GET'])
 async def undo():
     """Undo the last action."""
