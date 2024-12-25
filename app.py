@@ -5,7 +5,7 @@ from io import BytesIO
 import threading
 import cv2
 import numpy as np
-import asyncio
+import BatchProcessing
 
 app = Flask(__name__)
 image_states = []
