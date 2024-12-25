@@ -3,10 +3,8 @@ from rembg import remove
 from PIL import Image, ImageFilter, ImageEnhance
 from io import BytesIO
 import threading
-import requests
 import cv2
 import numpy as np
-import asyncio
 
 app = Flask(__name__)
 image_states = []
@@ -128,67 +126,63 @@ async def upload_file():
         
         if file:
             input_image = Image.open(file)
+            imageExtension = "jpeg"
 
-            tasks = []
+            # Process tasks sequentially
             if request.form.get('remove_bg'):
                 input_image = await remove_background(input_image)
 
             if request.form.get('resize'):
                 width = int(request.form.get('width', 100))
                 height = int(request.form.get('height', 100))
-                tasks.append(resize_image(input_image, width, height))
+                input_image = await resize_image(input_image, width, height)
 
             if request.form.get('compress'):
                 quality = int(request.form.get('quality', 75))
-                tasks.append(compress_image(input_image, quality))
+                input_image = await compress_image(input_image, quality)
 
             if request.form.get('change_format'):
                 new_format = request.form.get('format', 'JPEG').upper()
-                tasks.append(change_image_format(input_image, new_format))
+                imageExtension = new_format.lower()
+                input_image = await change_image_format(input_image, new_format)
 
             if request.form.get('crop'):
                 top = int(request.form.get('top', 0))
                 bottom = int(request.form.get('bottom', 0))
                 left = int(request.form.get('left', 0))
                 right = int(request.form.get('right', 0))
-                tasks.append(crop_Image(input_image, top, bottom, left, right))
+                input_image = await crop_Image(input_image, top, bottom, left, right)
 
             if request.form.get('rotate'):
                 angle = int(request.form.get('angle', 0))
-                tasks.append(rotate_Image(input_image, angle))
+                input_image = await rotate_Image(input_image, angle)
 
             if request.form.get('add_filter'):
                 filter_name = request.form.get('filter', 'BLUR')
-                tasks.append(add_filter(input_image, filter_name))
+                input_image = await add_filter(input_image, filter_name)
 
             if request.form.get('add_watermark'):
                 watermark = Image.open(request.files['watermark'])
-                tasks.append(add_watermark(input_image, watermark))
+                input_image = await add_watermark(input_image, watermark)
 
             if request.form.get('adjust_properties'):
                 brightness = float(request.form.get('brightness', 1.0))
                 contrast = float(request.form.get('contrast', 1.0))
                 saturation = float(request.form.get('saturation', 1.0))
                 what = request.form.get('what', 'brightness')
-                tasks.append(adjust_image_properties(input_image, brightness, contrast, saturation, what))
+                input_image = await adjust_image_properties(input_image, brightness, contrast, saturation, what)
 
             if request.form.get('enhance_image'):
-                tasks.append(enhance_image_opencv(input_image))
+                input_image = await enhance_image_opencv(input_image)
 
-            if not tasks:
-                return 'No action selected', 400
-
-            results = await asyncio.gather(*tasks)
-
-            # Combine results (this is a simplified example, you may need to handle combining images differently)
-            output_image = results[-1]  # Assuming the last operation is the final output
-
+            # Save and return the final image
             img_io = BytesIO()
-            output_image.save(img_io, 'PNG')
+            input_image.save(img_io, imageExtension.upper())
             img_io.seek(0)
-            return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='outputImage.png')
+            return send_file(img_io, mimetype=f'image/{imageExtension}', as_attachment=True, download_name=f'outputImage.{imageExtension}')
 
     return render_template('index.html')
+
 
 @app.route('/undo', methods=['GET'])
 async def undo():
