@@ -5,6 +5,7 @@ from io import BytesIO
 import threading
 import cv2
 import numpy as np
+import asyncio
 
 app = Flask(__name__)
 image_states = []
@@ -182,7 +183,6 @@ async def upload_file():
             return send_file(img_io, mimetype=f'image/{imageExtension}', as_attachment=True, download_name=f'outputImage.{imageExtension}')
 
     return render_template('index.html')
-
 
 @app.route('/undo', methods=['GET'])
 async def undo():
