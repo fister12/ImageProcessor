@@ -1,0 +1,82 @@
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:6.0
+    container_name: imageprocessor_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: imageprocessor
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - imageprocessor_network
+
+  # Backend Flask API
+  backend:
+    build: 
+      context: .
+      dockerfile: dockerfile
+    container_name: imageprocessor_backend
+    restart: unless-stopped
+    environment:
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/imageprocessor?authSource=admin
+      - FLASK_ENV=development
+      - SECRET_KEY=your-super-secret-key-change-in-production
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    depends_on:
+      - mongodb
+    networks:
+      - imageprocessor_network
+
+  # Frontend React Application
+  frontend:
+    build:
+      context: ./frontned
+      dockerfile: Dockerfile
+    container_name: imageprocessor_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    volumes:
+      - ./frontned:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - imageprocessor_network
+
+  # Optional: MongoDB Express for database management
+  mongo-express:
+    image: mongo-express:1.0.0-alpha
+    container_name: imageprocessor_mongo_express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:password123@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: pass
+    depends_on:
+      - mongodb
+    networks:
+      - imageprocessor_network
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  imageprocessor_network:
+    driver: bridge

@@ -4,3 +4,9 @@ flask[async]
 onnxruntime
 opencv-python
 numpy
+pymongo
+flask-cors
+bcrypt
+python-dotenv
+flask-jwt-extended
+asyncio
