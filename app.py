@@ -15,7 +15,7 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'jwt-secret-string-ch
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
 
 # Initialize extensions
-cors = CORS(app, origins=['http://localhost:3000'])  # Allow frontend origin
+cors = CORS(app, origins=['http://localhost:3000', 'http://frontend:3000'])  # Allow frontend origin
 jwt = JWTManager(app)
 
 # Register blueprints

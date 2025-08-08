@@ -2,7 +2,7 @@ import os
 import zipfile
 from PIL import Image
 from io import BytesIO
-from flask import Blueprint, request, send_file
+from flask import Blueprint, request, send_file, jsonify
 from utils.image_processing import (
     remove_background, resize_image, compress_image, change_image_format
 )
@@ -24,48 +24,48 @@ def extract_images_from_zip(zip_file):
                     continue
     return images
 
-async def process_images_remove_background(images):
+def process_images_remove_background(images):
     """Apply remove_background function to a list of images."""
     processed_images = []
     for filename, image in images:
         try:
-            processed_image = await remove_background(image)
+            processed_image = remove_background(image)
             processed_images.append((filename, processed_image))
         except Exception as e:
             print(f"Error removing background from {filename}: {e}")
             processed_images.append((filename, image))  # Keep original if processing fails
     return processed_images
 
-async def process_images_resize(images, width, height):
+def process_images_resize(images, width, height):
     """Apply resize_image function to a list of images."""
     processed_images = []
     for filename, image in images:
         try:
-            processed_image = await resize_image(image, width, height)
+            processed_image = resize_image(image, width, height)
             processed_images.append((filename, processed_image))
         except Exception as e:
             print(f"Error resizing {filename}: {e}")
             processed_images.append((filename, image))
     return processed_images
 
-async def process_images_compress(images, quality):
+def process_images_compress(images, quality):
     """Apply compress_image function to a list of images."""
     processed_images = []
     for filename, image in images:
         try:
-            processed_image = await compress_image(image, quality)
+            processed_image = compress_image(image, quality)
             processed_images.append((filename, processed_image))
         except Exception as e:
             print(f"Error compressing {filename}: {e}")
             processed_images.append((filename, image))
     return processed_images
 
-async def process_images_change_format(images, new_format):
+def process_images_change_format(images, new_format):
     """Apply change_image_format function to a list of images."""
     processed_images = []
     for filename, image in images:
         try:
-            processed_image = await change_image_format(image, new_format)
+            processed_image = change_image_format(image, new_format)
             # Update filename extension to match new format
             name_without_ext = os.path.splitext(filename)[0]
             new_filename = f"{name_without_ext}.{new_format.lower()}"
@@ -101,7 +101,7 @@ def save_images_to_zip(images, output_zip_path):
                 print(f"Error saving {filename} to zip: {e}")
 
 @batch_process_bp.route('/batch', methods=['POST'])
-async def batch_processing():
+def batch_processing():
     """Handle batch processing of images from ZIP file."""
     if request.method == 'POST':
         if 'zip_file' not in request.files:
@@ -119,17 +119,17 @@ async def batch_processing():
             
             # Apply processing operations
             if request.form.get('remove_bg'):
-                input_images = await process_images_remove_background(input_images)
+                input_images = process_images_remove_background(input_images)
             if request.form.get('resize'):
                 width = int(request.form.get('width', 800))
                 height = int(request.form.get('height', 600))
-                input_images = await process_images_resize(input_images, width, height)
+                input_images = process_images_resize(input_images, width, height)
             if request.form.get('compress'):
                 quality = int(request.form.get('quality', 75))
-                input_images = await process_images_compress(input_images, quality)
+                input_images = process_images_compress(input_images, quality)
             if request.form.get('change_format'):
                 new_format = request.form.get('format', 'JPEG').upper()
-                input_images = await process_images_change_format(input_images, new_format)
+                input_images = process_images_change_format(input_images, new_format)
             
             # Save processed images to ZIP
             output_zip_path = 'processed_images.zip'

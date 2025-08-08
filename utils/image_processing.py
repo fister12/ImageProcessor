@@ -7,15 +7,15 @@ import threading
 
 lock = threading.Lock()
 
-async def remove_background(input_image):
+def remove_background(input_image):
     """Remove background from the input image."""
     return remove(input_image)
 
-async def resize_image(input_image, width, height):
+def resize_image(input_image, width, height):
     """Resize the input image to the specified dimensions."""
     return input_image.resize((width, height))
 
-async def compress_image(input_image, quality):
+def compress_image(input_image, quality):
     """Compress the input image to the specified quality."""
     if input_image.mode == 'RGBA':
         input_image = input_image.convert('RGB')
@@ -24,24 +24,24 @@ async def compress_image(input_image, quality):
     img_io.seek(0)
     return Image.open(img_io)
 
-async def change_image_format(input_image, new_format):
+def change_image_format(input_image, new_format):
     """Convert the input image to a different format."""
     img_io = BytesIO()
     input_image.save(img_io, format=new_format)
     img_io.seek(0)
     return Image.open(img_io)
 
-async def crop_Image(input_image, top, bottom, left, right):
+def crop_Image(input_image, top, bottom, left, right):
     """Crop the input image."""
     width, height = input_image.size
     input_image = input_image.crop((left, top, width - right, height - bottom))
     return input_image
 
-async def rotate_Image(input_image, angle):
+def rotate_Image(input_image, angle):
     """Rotate the input image."""
     return input_image.rotate(angle)
 
-async def add_filter(input_image, filter_name):
+def add_filter(input_image, filter_name):
     """Add filter to the input image."""
     if filter_name == 'BLUR':
         input_image = input_image.filter(ImageFilter.BLUR)
@@ -59,14 +59,14 @@ async def add_filter(input_image, filter_name):
         input_image = input_image.filter(ImageFilter.SHARPEN)
     return input_image
 
-async def add_watermark(input_image, watermark):
+def add_watermark(input_image, watermark):
     """Add watermark to the input image."""
     width, height = input_image.size
     watermark = watermark.resize((width, height))
     input_image.paste(watermark, (0, 0), watermark)
     return input_image
 
-async def adjust_image_properties(input_image, brightness=1.0, contrast=1.0, saturation=1.0, what='brightness'):
+def adjust_image_properties(input_image, brightness=1.0, contrast=1.0, saturation=1.0, what='brightness'):
     """
     Adjust the brightness, contrast, or saturation of an image.
 
@@ -88,7 +88,7 @@ async def adjust_image_properties(input_image, brightness=1.0, contrast=1.0, sat
 
     return input_image
 
-async def enhance_image_opencv(input_image):
+def enhance_image_opencv(input_image):
     """Enhance the input image using OpenCV."""
     open_cv_image = np.array(input_image)
     open_cv_image = cv2.cvtColor(open_cv_image, cv2.COLOR_RGB2BGR)
@@ -104,7 +104,7 @@ async def enhance_image_opencv(input_image):
     input_image = Image.fromarray(open_cv_image)
     return input_image
 
-async def add_to_history(image, image_states):
+def add_to_history(image, image_states):
     """Save the current image state for undo/redo functionality."""
     with lock:
         if len(image_states) >= 10:  # Limit history to the last 10 states

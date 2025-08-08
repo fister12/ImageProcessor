@@ -23,7 +23,7 @@ class DatabaseManager:
             # Get MongoDB URI from environment variable
             mongodb_uri = os.getenv('MONGODB_URI', 'mongodb://admin:password123@localhost:27017/imageprocessor?authSource=admin')
             
-            self._client = MongoClient(mongodb_uri)
+            self._client = MongoClient(mongodb_uri, serverSelectionTimeoutMS=5000)
             
             # Test the connection
             self._client.admin.command('ping')
@@ -33,9 +33,11 @@ class DatabaseManager:
             
             logging.info("Connected to MongoDB successfully")
             
-        except ConnectionFailure as e:
-            logging.error(f"Failed to connect to MongoDB: {e}")
-            raise
+        except Exception as e:
+            logging.warning(f"Failed to connect to MongoDB: {e}")
+            logging.warning("Application will continue without database functionality")
+            self._client = None
+            self._db = None
 
     def get_database(self):
         """Get the database instance."""
@@ -45,7 +47,10 @@ class DatabaseManager:
 
     def get_collection(self, collection_name):
         """Get a specific collection."""
-        return self.get_database()[collection_name]
+        db = self.get_database()
+        if db is None:
+            raise Exception("Database not available")
+        return db[collection_name]
 
     def close_connection(self):
         """Close the database connection."""

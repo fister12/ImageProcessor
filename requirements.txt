@@ -1,6 +1,6 @@
 rembg
 Pillow
-flask[async]
+flask
 onnxruntime
 opencv-python
 numpy

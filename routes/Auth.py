@@ -20,7 +20,10 @@ def register():
         if not username or not email or not password:
             return jsonify({"error": "Username, email, and password are required"}), 400
         
-        users_collection = db_manager.get_collection('users')
+        try:
+            users_collection = db_manager.get_collection('users')
+        except Exception as e:
+            return jsonify({"error": "Database not available. Please try again later."}), 503
         
         # Check if user already exists
         if users_collection.find_one({"$or": [{"username": username}, {"email": email}]}):
@@ -72,7 +75,10 @@ def login():
         if not username_or_email or not password:
             return jsonify({"error": "Username/email and password are required"}), 400
         
-        users_collection = db_manager.get_collection('users')
+        try:
+            users_collection = db_manager.get_collection('users')
+        except Exception as e:
+            return jsonify({"error": "Database not available. Please try again later."}), 503
         
         # Find user by username or email
         user = users_collection.find_one({
