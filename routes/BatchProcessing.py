@@ -105,17 +105,17 @@ async def batch_processing():
     """Handle batch processing of images from ZIP file."""
     if request.method == 'POST':
         if 'zip_file' not in request.files:
-            return 'No file uploaded', 400
+            return jsonify({"error": "No file uploaded"}), 400
         zip_file = request.files['zip_file']
         if zip_file.filename == '':
-            return 'No file selected', 400
+            return jsonify({"error": "No file selected"}), 400
         
         try:
             # Extract images from ZIP
             input_images = extract_images_from_zip(zip_file)
             
             if not input_images:
-                return 'No valid images found in ZIP file', 400
+                return jsonify({"error": "No valid images found in ZIP file"}), 400
             
             # Apply processing operations
             if request.form.get('remove_bg'):
@@ -138,6 +138,6 @@ async def batch_processing():
             return send_file(output_zip_path, as_attachment=True, download_name='processed_images.zip')
             
         except Exception as e:
-            return f'Error processing batch: {str(e)}', 500
+            return jsonify({"error": f"Error processing batch: {str(e)}"}), 500
 
 
