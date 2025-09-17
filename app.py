@@ -11,15 +11,11 @@ app = Flask(__name__)
 image_states = []
 lock = threading.Lock()
 
-async def remove_background(input_image):
-    """Remove background from the input image."""
-    return remove(input_image)
-
-async def resize_image(input_image, width, height):
+def resize_image(input_image, width, height):
     """Resize the input image to the specified dimensions."""
     return input_image.resize((width, height))
 
-async def compress_image(input_image, quality):
+def compress_image(input_image, quality):
     """Compress the input image to the specified quality."""
     if input_image.mode == 'RGBA':
         input_image = input_image.convert('RGB')
@@ -28,24 +24,24 @@ async def compress_image(input_image, quality):
     img_io.seek(0)
     return Image.open(img_io)
 
-async def change_image_format(input_image, new_format):
+def change_image_format(input_image, new_format):
     """Convert the input image to a different format."""
     img_io = BytesIO()
     input_image.save(img_io, format=new_format)
     img_io.seek(0)
     return Image.open(img_io)
 
-async def crop_Image(input_image, top, bottom, left, right):
+def crop_Image(input_image, top, bottom, left, right):
     """Crop the input image."""
     width, height = input_image.size
     input_image = input_image.crop((left, top, width - right, height - bottom))
     return input_image
 
-async def rotate_Image(input_image, angle):
+def rotate_Image(input_image, angle):
     """Rotate the input image."""
     return input_image.rotate(angle)
 
-async def add_filter(input_image, filter_name):
+def add_filter(input_image, filter_name):
     """Add filter to the input image."""
     if filter_name == 'BLUR':
         input_image = input_image.filter(ImageFilter.BLUR)
@@ -63,14 +59,14 @@ async def add_filter(input_image, filter_name):
         input_image = input_image.filter(ImageFilter.SHARPEN)
     return input_image
 
-async def add_watermark(input_image, watermark):
+def add_watermark(input_image, watermark):
     """Add watermark to the input image."""
     width, height = input_image.size
     watermark = watermark.resize((width, height))
     input_image.paste(watermark, (0, 0), watermark)
     return input_image
 
-async def adjust_image_properties(input_image, brightness=1.0, contrast=1.0, saturation=1.0, what='brightness'):
+def adjust_image_properties(input_image, brightness=1.0, contrast=1.0, saturation=1.0, what='brightness'):
     """
     Adjust the brightness, contrast, or saturation of an image.
 
@@ -92,7 +88,7 @@ async def adjust_image_properties(input_image, brightness=1.0, contrast=1.0, sat
 
     return input_image
 
-async def enhance_image_opencv(input_image):
+def enhance_image_opencv(input_image):
     """Enhance the input image using OpenCV."""
     open_cv_image = np.array(input_image)
     open_cv_image = cv2.cvtColor(open_cv_image, cv2.COLOR_RGB2BGR)
@@ -108,7 +104,7 @@ async def enhance_image_opencv(input_image):
     input_image = Image.fromarray(open_cv_image)
     return input_image
 
-async def add_to_history(image):
+def add_to_history(image):
     """Save the current image state for undo/redo functionality."""
     with lock:
         if len(image_states) >= 10:  # Limit history to the last 10 states
@@ -116,7 +112,7 @@ async def add_to_history(image):
         image_states.append(image.copy())   
 
 @app.route('/', methods=['GET', 'POST'])
-async def upload_file():
+def upload_file():
     global image_states
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -131,53 +127,56 @@ async def upload_file():
 
             # Process tasks sequentially
             if request.form.get('remove_bg'):
-                input_image = await remove_background(input_image)
+                input_image = remove(input_image)
 
             if request.form.get('resize'):
                 width = int(request.form.get('width', 100))
                 height = int(request.form.get('height', 100))
-                input_image = await resize_image(input_image, width, height)
+                input_image = resize_image(input_image, width, height)
 
             if request.form.get('compress'):
                 quality = int(request.form.get('quality', 75))
-                input_image = await compress_image(input_image, quality)
+                input_image = compress_image(input_image, quality)
 
             if request.form.get('change_format'):
                 new_format = request.form.get('format', 'JPEG').upper()
                 imageExtension = new_format.lower()
-                input_image = await change_image_format(input_image, new_format)
+                input_image = change_image_format(input_image, new_format)
 
             if request.form.get('crop'):
                 top = int(request.form.get('top', 0))
                 bottom = int(request.form.get('bottom', 0))
                 left = int(request.form.get('left', 0))
                 right = int(request.form.get('right', 0))
-                input_image = await crop_Image(input_image, top, bottom, left, right)
+                input_image = crop_Image(input_image, top, bottom, left, right)
 
             if request.form.get('rotate'):
                 angle = int(request.form.get('angle', 0))
-                input_image = await rotate_Image(input_image, angle)
+                input_image = rotate_Image(input_image, angle)
 
             if request.form.get('add_filter'):
                 filter_name = request.form.get('filter', 'BLUR')
-                input_image = await add_filter(input_image, filter_name)
+                input_image = add_filter(input_image, filter_name)
 
             if request.form.get('add_watermark'):
                 watermark = Image.open(request.files['watermark'])
-                input_image = await add_watermark(input_image, watermark)
+                input_image = add_watermark(input_image, watermark)
 
             if request.form.get('adjust_properties'):
                 brightness = float(request.form.get('brightness', 1.0))
                 contrast = float(request.form.get('contrast', 1.0))
                 saturation = float(request.form.get('saturation', 1.0))
                 what = request.form.get('what', 'brightness')
-                input_image = await adjust_image_properties(input_image, brightness, contrast, saturation, what)
+                input_image = adjust_image_properties(input_image, brightness, contrast, saturation, what)
 
             if request.form.get('enhance_image'):
-                input_image = await enhance_image_opencv(input_image)
+                input_image = enhance_image_opencv(input_image)
 
             # Save and return the final image
             img_io = BytesIO()
+            # Convert RGBA to RGB if saving as JPEG
+            if imageExtension.lower() in ["jpg", "jpeg"] and input_image.mode == "RGBA":
+                input_image = input_image.convert("RGB")
             input_image.save(img_io, imageExtension.upper())
             img_io.seek(0)
             return send_file(img_io, mimetype=f'image/{imageExtension}', as_attachment=True, download_name=f'outputImage.{imageExtension}')
@@ -185,7 +184,7 @@ async def upload_file():
     return render_template('index.html')
 
 @app.route('/undo', methods=['GET'])
-async def undo():
+def undo():
     """Undo the last action."""
     global image_states
     with lock:

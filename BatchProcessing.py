@@ -2,7 +2,8 @@ import os
 import zipfile
 from PIL import Image
 from io import BytesIO
-from app import remove_background, resize_image, compress_image, change_image_format, crop_Image, rotate_Image, add_filter
+from rembg import remove
+from app import resize_image, compress_image, change_image_format, crop_Image, rotate_Image, add_filter
 
 def extract_images_from_zip(zip_file):
     """Extract images from a zip file."""
@@ -15,10 +16,10 @@ def extract_images_from_zip(zip_file):
     return images
 
 def process_images_remove_background(images):
-    """Apply remove_background function to a list of images."""
+    """Apply remove function to a list of images."""
     processed_images = []
     for filename, image in images:
-        processed_image = remove_background(image)
+        processed_image = remove(image)
         processed_images.append((filename, processed_image))
     return processed_images
 
@@ -72,5 +73,5 @@ if __name__ == "__main__":
     input_zip_path = 'input_images.zip'
     output_zip_path = 'processed_images.zip'
 
-    # Example usage with remove_background function
-    main(input_zip_path, output_zip_path, remove_background)
+    # Example usage with remove function
+    main(input_zip_path, output_zip_path, remove)
