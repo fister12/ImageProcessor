@@ -19,6 +19,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     libgthread-2.0-0 \
     libgl1 \
+    libglu1-mesa \
+    libxi6 \
+    libxfixes3 \
+    libxrandr2 \
+    libxss1 \
+    libxcursor1 \
+    libxcomposite1 \
+    libxdamage1 \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 

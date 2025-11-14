@@ -4,3 +4,4 @@ flask[async]
 onnxruntime
 opencv-python-headless
 numpy
+gunicorn

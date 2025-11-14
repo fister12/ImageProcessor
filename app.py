@@ -5,6 +5,7 @@ from io import BytesIO
 import threading
 import cv2
 import numpy as np
+import os
 import BatchProcessing
 
 app = Flask(__name__)
@@ -198,4 +199,5 @@ def undo():
             return jsonify({"error": "No more undo steps available"}), 400
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', debug=False, port=port)
