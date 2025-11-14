@@ -2,5 +2,5 @@ rembg
 Pillow
 flask[async]
 onnxruntime
-opencv-python
+opencv-python-headless
 numpy

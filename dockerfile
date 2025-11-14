@@ -1,6 +1,12 @@
 # Use a Python 3.9 slim base image
 FROM python:3.9-slim
 
+# Set environment variables to optimize pip
+ENV PIP_DEFAULT_TIMEOUT=1000
+ENV PIP_RETRIES=5
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_NO_CACHE_DIR=1
+
 # Set the working directory inside the container
 WORKDIR /app
 
@@ -18,11 +24,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy only the requirements file and install dependencies to leverage Docker layer caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install packages with better timeout and retry settings
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir --timeout=1000 --retries=5 -r requirements.txt
 
-# Copy the rest of the application files, including the model file
-# The destination directory is created by the COPY command
-COPY u2net.onnx .
+# Copy the rest of the application files
 COPY . .
 
 # Expose the port your application listens on
