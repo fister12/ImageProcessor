@@ -2,3 +2,4 @@ u2net.onnx
 venv
 node_modules
 tests\__pycache__
+__pycache__

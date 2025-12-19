@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, send_file, jsonify
+from flask_login import LoginManager
+from flask_cors import CORS
 from rembg import remove
 from PIL import Image, ImageFilter, ImageEnhance
 from io import BytesIO
@@ -7,8 +9,46 @@ import cv2
 import numpy as np
 import os
 import BatchProcessing
+from models import db, User
+from routes.auth import auth_bp
+import os
 
 app = Flask(__name__)
+
+# Configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///imageprocessor.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Configure CORS
+CORS(app, resources={
+    r"/auth/*": {
+        "origins": ["http://localhost:3000", "http://localhost:80", "http://frontend:80"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+})
+
+# Initialize extensions
+db.init_app(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'
+login_manager.login_message = 'Please log in to access this page.'
+login_manager.login_message_category = 'info'
+
+app.register_blueprint(auth_bp)
+
+# User loader for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Initialize database
+with app.app_context():
+    db.create_all()
+
 image_states = []
 lock = threading.Lock()
 

@@ -8,3 +8,21 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
+    networks:
+      - image-processor-network
+
+  image-processor-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - image-processor
+    restart: unless-stopped
+    networks:
+      - image-processor-network
+
+networks:
+  image-processor-network:
+    driver: bridge

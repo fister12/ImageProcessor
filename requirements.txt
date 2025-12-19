@@ -5,3 +5,7 @@ onnxruntime
 opencv-python-headless
 numpy
 gunicorn
+flask-login
+flask-sqlalchemy
+werkzeug
+flask-cors
