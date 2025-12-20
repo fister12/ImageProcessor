@@ -13,8 +13,13 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    is_active = db.Column(db.Boolean, default=True, index=True)
+    
+    # Composite index for common query pattern (username OR email lookup)
+    __table_args__ = (
+        db.Index('idx_username_email_active', 'username', 'email', 'is_active'),
+    )
     
     def set_password(self, password):
         """Hash and set the user's password."""

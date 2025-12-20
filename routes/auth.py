@@ -1,15 +1,39 @@
 from flask import Blueprint, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash
+from functools import lru_cache
 import re
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+# Cache compiled regex patterns for better performance
+@lru_cache(maxsize=128)
+def _compile_email_pattern():
+    """Compile and cache email regex pattern."""
+    return re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+
+@lru_cache(maxsize=128)
+def _compile_username_pattern():
+    """Compile and cache username regex pattern."""
+    return re.compile(r'^[a-zA-Z0-9._%+-]+$')
+
 def validate_email(email):
     """Validate email format."""
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return re.match(pattern, email) is not None
+    return _compile_email_pattern().match(email) is not None
+
+def validate_username(username):
+    """Validate username format."""
+    if not _compile_username_pattern().match(username):
+        return False, "Username must contain only letters, numbers, and underscores"
+    return True, "Username is valid"
+
+def validate_username(username):
+    """Validate username format."""
+    pattern = r'^[a-zA-Z0-9._%+-]+$'
+    if not re.match(pattern, username):
+        return False, "Username must contain only letters, numbers, and underscores"
+    return True, "Username is valid"
 
 def validate_password(password):
     """Validate password strength."""
@@ -53,16 +77,19 @@ def register():
         if not is_valid:
             return jsonify({'error': message}), 400
         
-        # Check if user already exists
-        if User.query.filter_by(username=username).first():
-            return jsonify({'error': 'Username already exists'}), 409
+        # Optimize: Single query to check both username and email
+        existing_user = User.query.filter(
+            (User.username == username) | (User.email == email)
+        ).first()
         
-        if User.query.filter_by(email=email).first():
+        if existing_user:
+            if existing_user.username == username:
+                return jsonify({'error': 'Username already exists'}), 409
             return jsonify({'error': 'Email already registered'}), 409
         
-        # Create new user
+        # Create new user - FIX: Remove duplicate hashing (set_password already hashes)
         user = User(username=username, email=email)
-        user.set_password(generate_password_hash(password))
+        user.set_password(password)
         
         db.session.add(user)
         db.session.commit()
@@ -216,17 +243,18 @@ def update_profile():
         email = data.get('email', '').strip().lower()
         
         # Update username if provided
-        if username:
-            if username != current_user.username:
-                if User.query.filter_by(username=username).first():
-                    return jsonify({'error': 'Username already exists'}), 409
-                current_user.username = username
+        if username and username != current_user.username:
+            # Optimize: Single query to check if username exists
+            if User.query.filter_by(username=username).first():
+                return jsonify({'error': 'Username already exists'}), 409
+            current_user.username = username
         
         # Update email if provided
         if email:
             if not validate_email(email):
                 return jsonify({'error': 'Invalid email format'}), 400
             if email != current_user.email:
+                # Optimize: Single query to check if email exists
                 if User.query.filter_by(email=email).first():
                     return jsonify({'error': 'Email already registered'}), 409
                 current_user.email = email

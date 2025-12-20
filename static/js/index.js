@@ -1,9 +1,20 @@
+// Cache DOM elements for better performance
 const fileDropArea = document.querySelector('.file-drop-area');
 const fileInput = document.getElementById('file');
 const imagePreviewContainer = document.getElementById('image-preview-container');
 const imagePreview = document.getElementById('image-preview');
-const result= document.getElementById('result');
-const resultImage=document.getElementById('result-image');
+const result = document.getElementById('result');
+const resultImage = document.getElementById('result-image');
+
+// Cache element lookup map for toggleInputGroup
+const ELEMENT_MAP = {
+    resize: ['resize-width', 'resize-height'],
+    compress: ['compress-quality'],
+    change_format: ['change-format'],
+    crop: ['crop-top', 'crop-bottom', 'crop-left', 'crop-right'],
+    rotate: ['rotate-angle'],
+    filter: ['add-filter']
+};
 
 fileDropArea.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -27,63 +38,105 @@ function handleFileInput(event) {
 }
 
 function handleFilePreview(file) {
-    if(file==null){
-        console.log("No file selected");
+    if (!file) {
         imagePreview.src = '';
         imagePreviewContainer.classList.add('hidden');
         return;
     }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        return;
+    }
+    
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+        alert('File size exceeds 10MB limit');
+        return;
+    }
+    
     const reader = new FileReader();
     reader.onload = function(e) {
-    imagePreview.src = e.target.result;
-    imagePreviewContainer.classList.remove("hidden");
-    result.classList.add("hidden");
-    resultImage.src = '';
+        imagePreview.src = e.target.result;
+        imagePreviewContainer.classList.remove("hidden");
+        result.classList.add("hidden");
+        resultImage.src = '';
+    };
+    reader.onerror = function() {
+        alert('Error reading file');
     };
     reader.readAsDataURL(file);
 }
 
 function toggleInputGroup(group) {
-    const elements = {
-    resize: ['resize-width', 'resize-height'],
-    compress: ['compress-quality'],
-    change_format: ['change-format'],
-    crop: ['crop-top', 'crop-bottom', 'crop-left', 'crop-right'],
-    rotate: ['rotate-angle'],
-    filter: ['add-filter']
-    };
+    const elementIds = ELEMENT_MAP[group];
+    if (!elementIds) return;
     
-    elements[group].forEach(id => {
-    const element = document.getElementById(id);
-    if (document.getElementById(`action-${group}`).checked) {
-        element.removeAttribute('readonly');
-    } else {
-        element.setAttribute('readonly', true);
-    }
+    const actionElement = document.getElementById(`action-${group}`);
+    if (!actionElement) return;
+    
+    const isChecked = actionElement.checked;
+    elementIds.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            if (isChecked) {
+                element.removeAttribute('readonly');
+            } else {
+                element.setAttribute('readonly', true);
+            }
+        }
     });
 }
-var blob;
-function modifyImage(event){
+let blob;
+function modifyImage(event) {
     event.preventDefault();
-    const formData=new FormData(event.target);
-    fetch("/",{
-        method:"POST",
-        body:formData
-    }).then(async response=>{
-        blob=await response.blob();
-        const url=URL.createObjectURL(blob);
-        const img=document.createElement("img");
-        img.style.display="block";
-        img.style.margin="auto";
-        img.src=url;
-        img.style.width="auto";
-        img.style.height="auto";
-        img.style.maxWidth="100%";
-        img.style.maxHeight="100%";
-        resultImage.src=url;
-        result.classList.remove("hidden");
-        window.location.href="/#result";
+    
+    // Show loading state
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    const originalText = submitButton?.textContent;
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Processing...';
+    }
+    
+    const formData = new FormData(event.target);
+    
+    fetch("/", {
+        method: "POST",
+        body: formData
     })
+    .then(async response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        
+        // Clean up previous blob URL to prevent memory leaks
+        if (resultImage.src && resultImage.src.startsWith('blob:')) {
+            URL.revokeObjectURL(resultImage.src);
+        }
+        
+        resultImage.src = url;
+        result.classList.remove("hidden");
+        
+        // Smooth scroll to result
+        result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    })
+    .catch(error => {
+        console.error('Error processing image:', error);
+        alert('Error processing image. Please try again.');
+    })
+    .finally(() => {
+        if (submitButton) {
+            submitButton.disabled = false;
+            if (originalText) {
+                submitButton.textContent = originalText;
+            }
+        }
+    });
 }
 
 function generateNewFileName(originalFileName, actions) {
@@ -124,26 +177,33 @@ function generateNewFileName(originalFileName, actions) {
     return newFileName;
 }
 
-function downloadImage(){
-    const a=document.createElement("a");
-    a.href=resultImage.src;
-    a.download=generateNewFileName(fileInput.files[0].name, {
-        remove_bg: document.getElementById("action-remove_bg").checked,
-        resize: document.getElementById("action-resize").checked,
-        width: document.getElementById("resize-width").value,
-        height: document.getElementById("resize-height").value,
-        compress: document.getElementById("action-compress").checked,
-        quality: document.getElementById("compress-quality").value,
-        change_format: document.getElementById("action-change_format").checked,
-        format: document.getElementById("change-format").value,
-        crop: document.getElementById("action-crop").checked,
-        top: document.getElementById("crop-top").value,
-        bottom: document.getElementById("crop-bottom").value,
-        left: document.getElementById("crop-left").value,
-        right: document.getElementById("crop-right").value,
-        rotate: document.getElementById("action-rotate").checked,
-        angle: document.getElementById("rotate-angle").value,
-        filter: document.getElementById("action-filter").checked? document.getElementById("add-filter").value : null,
+function downloadImage() {
+    if (!blob || !fileInput.files[0]) {
+        alert('No image to download');
+        return;
+    }
+    
+    const a = document.createElement("a");
+    a.href = resultImage.src;
+    a.download = generateNewFileName(fileInput.files[0].name, {
+        remove_bg: document.getElementById("action-remove_bg")?.checked || false,
+        resize: document.getElementById("action-resize")?.checked || false,
+        width: document.getElementById("resize-width")?.value || '',
+        height: document.getElementById("resize-height")?.value || '',
+        compress: document.getElementById("action-compress")?.checked || false,
+        quality: document.getElementById("compress-quality")?.value || '',
+        change_format: document.getElementById("action-change_format")?.checked || false,
+        format: document.getElementById("change-format")?.value || '',
+        crop: document.getElementById("action-crop")?.checked || false,
+        top: document.getElementById("crop-top")?.value || 0,
+        bottom: document.getElementById("crop-bottom")?.value || 0,
+        left: document.getElementById("crop-left")?.value || 0,
+        right: document.getElementById("crop-right")?.value || 0,
+        rotate: document.getElementById("action-rotate")?.checked || false,
+        angle: document.getElementById("rotate-angle")?.value || 0,
+        filter: document.getElementById("action-filter")?.checked ? document.getElementById("add-filter")?.value : null,
     });
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
 }
