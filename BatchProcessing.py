@@ -58,6 +58,9 @@ def save_images_to_zip(images, output_zip_path):
             img_io.seek(0)
             z.writestr(filename, img_io.read())
 
+def Change_format_images_to_png(images , new_format):
+    processed_images = []
+
 
 def main(input_zip_path, output_zip_path, process_function, *args, **kwargs):
     # Extract images from zip
@@ -68,6 +71,8 @@ def main(input_zip_path, output_zip_path, process_function, *args, **kwargs):
 
     # Save processed images to zip
     save_images_to_zip(processed_images, output_zip_path)
+
+
 
 if __name__ == "__main__":
     input_zip_path = 'input_images.zip'
